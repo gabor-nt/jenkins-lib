@@ -112,7 +112,6 @@ def call(body) {
                         withLockOnMockEnvironment(lockName: "${env.JOB_NAME}-${env.BUILD_NUMBER}") {
                             try {
                                 stage("Deploy to mock") {
-                                    echo "Deploying project ${project} version: ${buildVersion}"
                                     build job: "${project}-mock-deploy", parameters: [[$class: 'StringParameterValue', name: 'VERSION', value: buildVersion]]
                                 }
 
@@ -147,10 +146,8 @@ def call(body) {
                                 }
                             } catch (err) {
                                 if (prevVersion != "") {
-                                    clientsK8sNode(clientsImage: 'stakater/pipeline-tools:1.11.0') {
-                                        echo "There were test failures. Rolling back mock"
-                                        build job: "${project}-mock-deploy", parameters: [[$class: 'StringParameterValue', name: 'VERSION', value: prevVersion]]
-                                    }
+                                    echo "There were test failures. Rolling back mock"
+                                    build job: "${project}-mock-deploy", parameters: [[$class: 'StringParameterValue', name: 'VERSION', value: prevVersion]]
                                 } else {
                                     echo "There were test failures, but there was no previous version, not rolling back mock"
                                 }
