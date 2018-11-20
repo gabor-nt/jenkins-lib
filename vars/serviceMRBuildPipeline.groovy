@@ -1,3 +1,5 @@
+import nexus
+
 def call(body) {
-    delete("sws","1.4.1");
+    nexus.delete("sws","1.4.1");
 }
