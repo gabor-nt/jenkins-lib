@@ -20,7 +20,7 @@ def call(body) {
     String buildVersion
     def scmVars
 
-    def getVersion = mergeRequestBuild ? getVersionForMR : getVersionForBJ
+    Thing thing = mergeRequestBuild ? new MergeRequestBuildJobThing() : new BuildJobThing()
 
     timestamps {
         withSlackNotificatons() {
@@ -67,7 +67,7 @@ def call(body) {
                                     def pom = readMavenPom file: 'pom.xml'
                                     project = pom.artifactId
 
-                                    buildVersion = getVersion()
+                                    buildVersion = thing.getVersion()
 
                                     currentBuild.displayName = "${buildVersion}"
                                 }
@@ -122,16 +122,24 @@ private void tag(String buildVersion) {
     }
 }
 
-private String getVersionForBJ() {
-    def versionPrefix = config.VERSION_PREFIX ?: "1.4"
-    int version_last = sh(
-            script: "git tag | awk -F. 'BEGIN {print \"-1\"} /v${versionPrefix}/{print \$3}' | sort -g  | tail -1",
-            returnStdout: true
-    )
-    return "${versionPrefix}.${version_last + 1}"
+interface Thing {
+    String getVersion()
 }
 
-private String getVersionForMR() {
-    def branchName = env.gitlabSourceBranch
-    return "${branchName}-${currentBuild.number}"
+class BuildJobThing implements Thing {
+    String getVersion() {
+        def versionPrefix = config.VERSION_PREFIX ?: "1.4"
+        int version_last = sh(
+                script: "git tag | awk -F. 'BEGIN {print \"-1\"} /v${versionPrefix}/{print \$3}' | sort -g  | tail -1",
+                returnStdout: true
+        )
+        return "${versionPrefix}.${version_last + 1}"
+    }
+}
+
+class MergeRequestBuildJobThing implements Thing {
+    String getVersion() {
+        def branchName = env.gitlabSourceBranch
+        return "${branchName}-${currentBuild.number}"
+    }
 }
