@@ -20,6 +20,8 @@ def call(body) {
     String buildVersion
     def scmVars
 
+    def getVersion = mergeRequestBuild ? getVersionForMR : getVersionForBJ
+
     timestamps {
         withSlackNotificatons() {
             gitlabBuilds(builds: ["Build", "System test"]) {
@@ -91,7 +93,6 @@ def call(body) {
                     // tag or rollback
                     tag(buildVersion)
 
-
 //                    if (deployToDevAndProd) {
 //                        stage("Deploy to dev") {
 //                            build job: "${project}-dev-deploy", parameters: [[$class: 'StringParameterValue', name: 'VERSION', value: buildVersion]]
@@ -121,16 +122,16 @@ private void tag(String buildVersion) {
     }
 }
 
-private String getVersion() {
-    if (mergeRequestBuild) {
-        def branchName = env.gitlabSourceBranch
-        return "${branchName}-${currentBuild.number}"
-    } else {
-        def versionPrefix = config.VERSION_PREFIX ?: "1.4"
-        int version_last = sh(
-                script: "git tag | awk -F. 'BEGIN {print \"-1\"} /v${versionPrefix}/{print \$3}' | sort -g  | tail -1",
-                returnStdout: true
-        )
-        return "${versionPrefix}.${version_last + 1}"
-    }
+private String getVersionForBJ() {
+    def versionPrefix = config.VERSION_PREFIX ?: "1.4"
+    int version_last = sh(
+            script: "git tag | awk -F. 'BEGIN {print \"-1\"} /v${versionPrefix}/{print \$3}' | sort -g  | tail -1",
+            returnStdout: true
+    )
+    return "${versionPrefix}.${version_last + 1}"
+}
+
+private String getVersionForMR() {
+    def branchName = env.gitlabSourceBranch
+    return "${branchName}-${currentBuild.number}"
 }
