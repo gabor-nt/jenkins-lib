@@ -126,7 +126,7 @@ interface Thing {
     String getVersion()
 }
 
-class BuildJobThing implements Thing {
+class BuildJobThing implements Thing, Serializable {
     String getVersion() {
         def versionPrefix = config.VERSION_PREFIX ?: "1.4"
         int version_last = sh(
@@ -137,7 +137,7 @@ class BuildJobThing implements Thing {
     }
 }
 
-class MergeRequestBuildJobThing implements Thing {
+class MergeRequestBuildJobThing implements Thing, Serializable {
     String getVersion() {
         def branchName = env.gitlabSourceBranch
         return "${branchName}-${currentBuild.number}"
