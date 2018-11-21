@@ -24,7 +24,7 @@ def call(body) {
     String buildVersion
     def scmVars
     def getVersion =
-        mergeRequestBuild ? getMRVersion() : getBJVersion()
+        mergeRequestBuild ? getMRVersion(env, currentBuild) : getBJVersion(config)
 
 
     timestamps {
@@ -129,7 +129,7 @@ private void tag(String buildVersion) {
     }
 }
 
-String getBJVersion() {
+String getBJVersion(config) {
     def versionPrefix = config.VERSION_PREFIX ?: "1.4"
     int version_last = sh(
             script: "git tag | awk -F. 'BEGIN {print \"-1\"} /v${versionPrefix}/{print \$3}' | sort -g  | tail -1",
@@ -138,7 +138,7 @@ String getBJVersion() {
     return "${versionPrefix}.${version_last + 1}"
 }
 
-String getMRVersion() {
+String getMRVersion(env, currentBuild) {
     def branchName = env.gitlabSourceBranch
     def buildNumber = currentBuild.number
     return "${branchName}-${buildNumber}"
