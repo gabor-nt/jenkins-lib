@@ -1,6 +1,6 @@
 final String SYSTEM_TEST_STAGE = "System test"
 
-def call(body, getMRVersion = getMRVersion, getBJVersion = getBJVersion) {
+def call(body) {
     def credentialId = 'dd_ci'
 
     def config = [:]
@@ -23,7 +23,7 @@ def call(body, getMRVersion = getMRVersion, getBJVersion = getBJVersion) {
     String project
     String buildVersion
     def scmVars
-    def getVersion = mergeRequestBuild ? getMRVersion : getBJVersion
+    def getVersion = mergeRequestBuild ? this.&getMRVersion : this.&getBJVersion
 
 
     timestamps {
@@ -142,4 +142,3 @@ String getMRVersion(env, currentBuild) {
     def buildNumber = currentBuild.number
     return "${branchName}-${buildNumber}"
 }
-
