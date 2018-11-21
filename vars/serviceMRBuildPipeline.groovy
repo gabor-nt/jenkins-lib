@@ -21,6 +21,7 @@ def call(body) {
     String project
     String buildVersion
     def scmVars
+    def getVersion = mergeRequestBuild ? getMRVersion : getBJVersion;
 
     timestamps {
         withSlackNotificatons() {
@@ -67,7 +68,7 @@ def call(body) {
                                     def pom = readMavenPom file: 'pom.xml'
                                     project = pom.artifactId
 
-                                    buildVersion = getBJVersion()
+                                    buildVersion = getVersion()
                                     // TODO read this from pom
 
                                     currentBuild.displayName = "${buildVersion}"
@@ -132,6 +133,8 @@ String getBJVersion() {
     return "${versionPrefix}.${version_last + 1}"
 }
 
-String getMRVersion(String branchName, String buildNumber) {
+String getMRVersion() {
+    def branchName = env.gitlabSourceBranch
+    def buildNumber = currentBuild.number
     return "${branchName}-${buildNumber}"
 }
