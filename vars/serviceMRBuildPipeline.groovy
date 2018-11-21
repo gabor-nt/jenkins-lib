@@ -1,6 +1,6 @@
 final String SYSTEM_TEST_STAGE = "System test"
 
-def call(body) {
+def call(body, getMRVersion = getMRVersion, getBJVersion = getBJVersion) {
     def credentialId = 'dd_ci'
 
     def config = [:]
