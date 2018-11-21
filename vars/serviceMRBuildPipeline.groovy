@@ -67,7 +67,7 @@ def call(body) {
                                     def pom = readMavenPom file: 'pom.xml'
                                     project = pom.artifactId
 
-                                    buildVersion = getVersion(config.VERSION_PREFIX ?: "1.4")
+                                    buildVersion = getBJVersion()
                                     // TODO read this from pom
 
                                     currentBuild.displayName = "${buildVersion}"
@@ -123,7 +123,8 @@ private void tag(String buildVersion) {
     }
 }
 
-String getVersion(String versionPrefix) {
+String getBJVersion() {
+    def versionPrefix = config.VERSION_PREFIX ?: "1.4"
     int version_last = sh(
             script: "git tag | awk -F. 'BEGIN {print \"-1\"} /v${versionPrefix}/{print \$3}' | sort -g  | tail -1",
             returnStdout: true
