@@ -19,3 +19,7 @@ def call(config, boolean forceRollbackMicroService = false) {
         }
     }
 }
+
+def hello(){
+    echo "hello"
+}

@@ -1,3 +1,5 @@
+final String SYSTEM_TEST_STAGE = "System test"
+
 def call(body) {
     def credentialId = 'dd_ci'
 
@@ -21,13 +23,13 @@ def call(body) {
     String project
     String buildVersion
     def scmVars
-    def getVersion() {
+    def getVersion =
         mergeRequestBuild ? getMRVersion() : getBJVersion()
-    }
+
 
     timestamps {
         withSlackNotificatons() {
-            gitlabBuilds(builds: ["Build", "System test"]) {
+            gitlabBuilds(builds: ["Build", SYSTEM_TEST_STAGE]) {
                 podTemplate(
                         name: 'sa-secret',
                         serviceAccount: 'digitaldealer-serviceaccount',
@@ -38,6 +40,7 @@ def call(body) {
                                 secretVolume(secretName: "${kubeConfig}", mountPath: '/home/jenkins/.kube'),
                                 secretVolume(secretName: 'digitaldealer-service-secret', mountPath: '/etc/secrets/service-secret')
                         ]) {
+                    systemtestStage.hello()
 
                     mavenNode(maven: 'stakater/pipeline-tools:1.11.0') {
                         container(name: 'maven') {
@@ -90,7 +93,7 @@ def call(body) {
                         }
                     }
 
-                    gitlabCommitStatus(name: "System test") {
+                    gitlabCommitStatus(name: SYSTEM_TEST_STAGE) {
                         systemtestStage([microservice: [name: project, version: buildVersion]], mergeRequestBuild)
                     }
 
@@ -140,3 +143,4 @@ String getMRVersion() {
     def buildNumber = currentBuild.number
     return "${branchName}-${buildNumber}"
 }
+
