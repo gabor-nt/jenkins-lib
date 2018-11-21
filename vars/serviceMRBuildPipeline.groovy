@@ -11,6 +11,8 @@ def call(body) {
     def dockerRepo = params.DOCKER_URL
 
     def mergeRequestBuild = env.gitlabMergeRequestId != null
+    echo "mergeRequestBuild: ${mergeRequestBuild}"
+
     def onlyMock = config.onlyMock ?: false
 
     def deployToDevAndProd = !(mergeRequestBuild || onlyMock)
@@ -19,8 +21,6 @@ def call(body) {
     String project
     String buildVersion
     def scmVars
-
-    Thing thing = mergeRequestBuild ? new MergeRequestBuildJobThing(env.gitlabSourceBranch, currentBuild.number) : new BuildJobThing()
 
     timestamps {
         withSlackNotificatons() {
@@ -67,7 +67,7 @@ def call(body) {
                                     def pom = readMavenPom file: 'pom.xml'
                                     project = pom.artifactId
 
-                                    buildVersion = thing.getVersion(config.VERSION_PREFIX ?: "1.4")
+                                    buildVersion = getVersion(config.VERSION_PREFIX ?: "1.4")
                                     // TODO read this from pom
 
                                     currentBuild.displayName = "${buildVersion}"
@@ -123,28 +123,14 @@ private void tag(String buildVersion) {
     }
 }
 
-interface Thing {
-    String getVersion(String versionPrefix)
+String getVersion(String versionPrefix) {
+    int version_last = sh(
+            script: "git tag | awk -F. 'BEGIN {print \"-1\"} /v${versionPrefix}/{print \$3}' | sort -g  | tail -1",
+            returnStdout: true
+    )
+    return "${versionPrefix}.${version_last + 1}"
 }
 
-class BuildJobThing implements Thing, Serializable {
-    String getVersion(String versionPrefix) {
-        int version_last = sh(
-                script: "git tag | awk -F. 'BEGIN {print \"-1\"} /v${versionPrefix}/{print \$3}' | sort -g  | tail -1",
-                returnStdout: true
-        )
-        return "${versionPrefix}.${version_last + 1}"
-    }
-}
-
-class MergeRequestBuildJobThing implements Thing, Serializable {
-    private final String version
-
-    MergeRequestBuildJobThing(String branchName, String buildNumber) {
-        version = "${branchName}-${buildNumber}"
-    }
-
-    String getVersion(String versionPrefix) {
-        return version
-    }
+String getMRVersion(String branchName, String buildNumber) {
+    return "${branchName}-${buildNumber}"
 }
