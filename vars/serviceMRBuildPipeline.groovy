@@ -21,7 +21,9 @@ def call(body) {
     String project
     String buildVersion
     def scmVars
-    def getVersion = mergeRequestBuild ? getMRVersion : getBJVersion;
+    def getVersion() {
+        mergeRequestBuild ? getMRVersion() : getBJVersion()
+    }
 
     timestamps {
         withSlackNotificatons() {
