@@ -23,7 +23,7 @@ def call(body) {
     String project
     String buildVersion
     def scmVars
-    def getVersion = mergeRequestBuild ? this.&getMRVersion : this.&getBJVersion
+    def getVersion = mergeRequestBuild ? {this.getMRVersion(env,currentBuild)} : {this.getBJVersion(config)}
 
 
     timestamps {
