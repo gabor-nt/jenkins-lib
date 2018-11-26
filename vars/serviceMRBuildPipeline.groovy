@@ -130,7 +130,7 @@ private void tag(String buildVersion) {
 
 String getBJVersion(config) {
     def versionPrefix = config.VERSION_PREFIX ?: "1.4"
-    int version_last = sh(
+    def version_last = sh(
             script: "git tag | awk -F. 'BEGIN {print \"-1\"} /v${versionPrefix}/{print \$3}' | sort -g  | tail -1",
             returnStdout: true
     )
